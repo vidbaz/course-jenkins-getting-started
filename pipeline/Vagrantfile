@@ -1,8 +1,5 @@
-#Example
-  # cerebro container: https://github.com/yannart/docker-cerebro
-  # ElasticSearch cluster: https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker
 #VM settings
-VM_IP = "172.28.128.16"
+VM_IP = "172.28.128.17"
 VM_MEMORY_MB  = "4096" #4g
 
 Vagrant.configure(2) do |config|
@@ -15,14 +12,9 @@ Vagrant.configure(2) do |config|
     jenkins.vm.network "private_network", ip: VM_IP
     jenkins.vm.provision "docker"
     jenkins.vm.provision :shell, inline: <<-SHELL
-    sudo apt-get install -y vim;
-    echo 'syntax on' >> ~/.vimrc            #fixing issue with MobaXterm on vim
-    echo 'set background=dark' >> ~/.vimrc  #fixing issue with MobaXterm on vim
-    cat /vagrant/id_rsa.pub >> /home/vagrant/.ssh/authorized_keys   #copy the key
-      
+      sudo apt-get install -y vim;
+      cat /vagrant/id_rsa.pub >> /home/vagrant/.ssh/authorized_keys;   #copy the key to access the vm
       # installing compose 
-      sudo bash -c "echo 'vm.max_map_count=262144' >> /etc/sysctl.conf" # to avoid [1]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
-      sudo sysctl -p
       if [ -z "$( which docker-compose )" ] ; then
         sudo apt-get update;
         sudo apt-get install -y python3-pip;
@@ -30,7 +22,6 @@ Vagrant.configure(2) do |config|
       fi
       cd /vagrant;
       sudo docker-compose up -d;
-
     SHELL
   end
 end
