@@ -1,0 +1,36 @@
+#Example
+  # cerebro container: https://github.com/yannart/docker-cerebro
+  # ElasticSearch cluster: https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker
+#VM settings
+VM_IP = "172.28.128.16"
+VM_MEMORY_MB  = "4096" #4g
+
+Vagrant.configure(2) do |config|
+  config.vm.box = "debian/buster64"  # https://app.vagrantup.com/debian/
+  config.vm.define "jenkins" do |jenkins|
+    jenkins.vm.provider "virtualbox" do |vb|
+      vb.memory = VM_MEMORY_MB
+    end
+    jenkins.vm.synced_folder ".", "/vagrant", :mount_options => ["dmode=777", "fmode=666"]
+    jenkins.vm.network "private_network", ip: VM_IP
+    jenkins.vm.provision "docker"
+    jenkins.vm.provision :shell, inline: <<-SHELL
+    sudo apt-get install -y vim;
+    echo 'syntax on' >> ~/.vimrc            #fixing issue with MobaXterm on vim
+    echo 'set background=dark' >> ~/.vimrc  #fixing issue with MobaXterm on vim
+    cat /vagrant/id_rsa.pub >> /home/vagrant/.ssh/authorized_keys   #copy the key
+      
+      # installing compose 
+      sudo bash -c "echo 'vm.max_map_count=262144' >> /etc/sysctl.conf" # to avoid [1]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+      sudo sysctl -p
+      if [ -z "$( which docker-compose )" ] ; then
+        sudo apt-get update;
+        sudo apt-get install -y python3-pip;
+        sudo pip3 install -U docker-compose;
+      fi
+      cd /vagrant;
+      sudo docker-compose up -d;
+
+    SHELL
+  end
+end
